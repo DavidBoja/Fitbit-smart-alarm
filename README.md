@@ -4,7 +4,7 @@ This is a "hacky" implementation of a Fitbit smart alarm for older Fitbit device
 A smart alarm is an alarm that tries to wake you up in between times t1 and t2, when it deems you are the most awake.
 
 The overall implementation looks like:
-![alt text](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/Fitbit%20drawing.jpg)
+![Implementation](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/Fitbit%20drawing.jpg)
 The smart alarm is implemented on Heroku; a server which, among many other things, let's you run a scheduled python script for free.
 The app continuously asks the Fitbit api for your current heart rate (HR). If the HR is above a certain threshold, it send a request to set an alarm. 
 When the alarm is set, an HR graph is created and saved to your Google Drive. 
@@ -12,7 +12,8 @@ On the mobile side, the Automate app continuously synchronizes your watch with t
 
 ### 1) Fitbit api
 To obtain Fitbit credentials you need to create a Fitbit app following this link. All the instructions are in the image below.
-SLIKA CREDENTIALSA
+![Create an app for Fitbit](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_api_register_app.png)
+After creating the app, you have the client ID and Client Secret, which will be used to make api requests.
 
 ### 2) Heroku
 The python script "smart_alarm.py" does all the work on a Heroku server.
