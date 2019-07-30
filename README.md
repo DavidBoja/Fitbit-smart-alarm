@@ -13,13 +13,13 @@ On the mobile side, the Automate app continuously synchronizes your watch with t
 ### 1) Fitbit api
 To obtain Fitbit credentials you need to create a Fitbit app following this link. All the instructions are in the image below.
 ![Create an app for Fitbit](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_api_register_app.png)
-After creating the app, you have the client ID and Client Secret, which will be used to make api requests.
+After creating the app, you obtain the client ID and Client Secret, which will be used to make api requests.
 
 ### 2) Heroku
 The python script "smart_alarm.py" does all the work on a Heroku server.
 
 To setup your Heroku app, you firstly need to create a Heroku account. 
-Use the Heroku CLI to create your app by following these steps [Link to install heroku](https://devcenter.heroku.com/articles/heroku-cli).
+Use the Heroku CLI to create your app by following [these steps](https://devcenter.heroku.com/articles/heroku-cli).
 
 Next, download this repository by following [this link](https://help.github.com/en/articles/cloning-a-repository). Instead of cloning it from the terminal, it may be easier to download it as a ZIP and extract it to the Heroku app folder.
 
