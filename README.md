@@ -19,10 +19,25 @@ After creating the app, you have the client ID and Client Secret, which will be 
 The python script "smart_alarm.py" does all the work on a Heroku server.
 
 To setup your Heroku app, you firstly need to create a Heroku account. 
-Use the Heroku CLI to setup your app: LINK TO INSTALL HEROKU, LINK TO CREATE APP.
+Use the Heroku CLI to create your app by following these steps [Link to install heroku](https://devcenter.heroku.com/articles/heroku-cli).
 
-Next, download this repository by following [this link](https://help.github.com/en/articles/cloning-a-repository). Instead of cloning it, it may be easier to download it as a ZIP and extract it to the Heroku app folder.
+Next, download this repository by following [this link](https://help.github.com/en/articles/cloning-a-repository). Instead of cloning it from the terminal, it may be easier to download it as a ZIP and extract it to the Heroku app folder.
 
 Next, we need to setup a environment variables and the Heroku scheduler.
+Login with your account to [Heroku.com](https://dashboard.heroku.com/apps) and find the Settings tab in your app.
+There, you need to add variables so that you can login to your Fitbit account and such.
+SLIKA ENV VARS
+Scrolling down, you need to add 2 buildpacks in the Buildpacks section by oressing Add buildpack and pasting the following two repos one at a time:
+1. https://github.com/heroku/heroku-buildpack-chromedriver.git
+2. https://github.com/heroku/heroku-buildpack-google-chrome.git
 
-### 3) Google Drive
+### 3) Google Drive (OPTIONAL)
+After the alarm has been set, an HR graph is created and saved to your Google Drive.
+To be able to use Google Drive, you need to 
+For the first time, you might need to run 
+
+### 4) Automate app
+
+### 5) Fitbit app
+
+### 6) Usage
