@@ -15,6 +15,11 @@ To obtain Fitbit credentials you need to create a Fitbit app following [this lin
 ![Create an app for Fitbit](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_api_register_app.png)
 After creating the app, you obtain the client ID and Client Secret, which will be used to make api requests.
 
+Go to the "Manage my apps" tab and click on your app. Click on the "OAuth 2.0 tutorial page" and follow the instructions till the 1A) step. The output of step 1A) gives you a couple of lines of a curl request. The line we're interested in is
+-H 'Authorization: Basic whatever_your_code_is'. We will remember the "whatever_your_code_is" variable as FITBIT_AUTHORIZATION variable, and we'll set it in step 2).
+
+SLIKAAAAAAAAAAA
+
 ### 2) Heroku
 The python script "smart_alarm.py" does all the work on a Heroku server.
 
@@ -30,19 +35,49 @@ There, you need to add the following variables (listed as key:value):
 2. CLIENT_ID: the Fitbit Client ID obtained from step 1)
 3. CLIENT_SECRET: the Fitbit Client Secret obtained from step 1)
 4. EMAIL: Fitbit login email
-5. FITBIT_AUTHORIZATION:
-6. 
-SLIKA ENV VARS
+5. FITBIT_AUTHORIZATION: variable from step 1)
+6. GOOGLE_CHROME_BIN: /app/.apt/usr/bin/google-chrome
+7. PASSW_FIT: your Fitbit account password
+8. TZ: your timezone (you can find the complete list [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones))
+
+SLIKAAAAAAAA ENV VARS
+
 Scrolling down, you need to add 2 buildpacks in the Buildpacks section by oressing Add buildpack and pasting the following two repos one at a time:
 1. https://github.com/heroku/heroku-buildpack-chromedriver.git
 2. https://github.com/heroku/heroku-buildpack-google-chrome.git
 
+The next step is to set the Heroku scheduler.
+Go to the Resources tab of your app on the Heroku page. In the text box "Quickly add add-ons from Elements" type in "Heroku Scheduler" and insatall it. Now, on the overveiw page, there's an installed app Heroku scheduler; click on it and add a new job every hour at whatever time you want. Be careful of the timezones. In the "Run Command" you'll put the smart alarm script like so:
+SLIKA
+where the parameters are the following:
+1. t1 --> integer signaling the hour from which the smart alarm tries to wake you up
+          the parameter is NOT USED because time t1 is set with the Heroku scheduler rather than the script
+2. t2 --> integer signaling the hour untill the smart alarm tries to wake you up
+3. heart_threshold --> integer signaling the HR above which you deem yourself to be awake (or awakeining)
+4. second_threshold --> integer signaling how many seconds does your heart rate need to be above the heart_threshold to
+                        create the alarm
+
 ### 3) Google Drive (OPTIONAL)
 After the alarm has been set, an HR graph is created and saved to your Google Drive.
-To be able to use Google Drive, you need to 
-For the first time, you might need to run 
+To enable the Google Drive API follow [this page](https://developers.google.com/drive/api/v2/enable-drive-api). This should provide you with a credentials.json file which will allow you to authenticate yourself using this script. 
+
+By having the credentials.json run the following python code locally to obtain the "mycreds.txt" file. This will run a window in your internet browser. Follow the instructions and authorize.
+```
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+gauth = GoogleAuth()
+gauth.DEFAULT_SETTINGS['client_config_file'] = "client_secret.json"
+
+gauth.LocalWebserverAuth()
+
+gauth.SaveCredentialsFile("mycreds.txt")
+```
+The "credentials.json" and "mycreds.txt" should be in the project folder before you push your app to the Heroku servers (if you want the Google Drive functionality).
 
 ### 4) Automate app
+The automate app is downloadable from the Google Play store [here](https://play.google.com/store/apps/details?id=com.llamalab.automate&referrer=utm_source%3Dhomepage). Install it. On the community pages, there is an FlowChart by the name "". Download it. This FlowChart synchronizes the watch with the Fitbit app on a tighter interval than Fitbit does when the synchronization is set FALI_RIJEC.
+In the evening, you set the automate app to syhcnr
 
 ### 5) Fitbit app
 
