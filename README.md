@@ -50,7 +50,7 @@ Scrolling down, you need to add 2 buildpacks in the Buildpacks section by pressi
 2. https://github.com/heroku/heroku-buildpack-google-chrome.git
 
 The next step is to set the Heroku scheduler.
-Go to the Resources tab of your app on the Heroku page. In the text box "Quickly add add-ons from Elements" type in "Heroku Scheduler" and install it. Now, on the overveiw page, there's an installed app Heroku scheduler; click on it and add a new job every hour at whatever time you want. Be careful of the timezones. In the "Run Command" you'll put the smart alarm script:
+Go to the Resources tab of your app on the Heroku page. In the text box "Quickly add add-ons from Elements" type in "Heroku Scheduler" and install it. Now, on the overveiw page, there's an installed app Heroku scheduler; click on it and add a new job "every day at.." whatever time you want. Be careful of the timezones. In the "Run Command" you'll put the smart alarm script:
 ```
 python smart_alarm.py t1 t2 heart_threshold second_threshold
 ```
