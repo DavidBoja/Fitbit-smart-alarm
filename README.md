@@ -22,6 +22,7 @@ Go to the "Manage my apps" tab and click on your app. Click on the "OAuth 2.0 tu
 We will remember the "whatever_your_code_is" variable as FITBIT_AUTHORIZATION in step 2) of this tutorial.
 
 ![The process of obtaining the FITBIT_AUTHORIZATION parameter. Confidential info is hidden in red](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_authorization_hidden.png)
+*The process of obtainint the FITBIT_AUTHORIZATION parameter. Confidential info is hidden in red*
 
 ### 2) Heroku
 The python script "smart_alarm.py" does all the work on a Heroku server.
@@ -52,6 +53,7 @@ Scrolling down, you need to add 2 buildpacks in the Buildpacks section by oressi
 The next step is to set the Heroku scheduler.
 Go to the Resources tab of your app on the Heroku page. In the text box "Quickly add add-ons from Elements" type in "Heroku Scheduler" and insatall it. Now, on the overveiw page, there's an installed app Heroku scheduler; click on it and add a new job every hour at whatever time you want. Be careful of the timezones. In the "Run Command" you'll put the smart alarm script like so:
 ![My smart alarm tries to wake me up from 7am and 8am. It sets an alarm if my HR is above 75 for 1 second.](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/heroku_scheduler.png)
+
 where the parameters are the following:
 1. t1 (7) --> integer signaling the hour from which the smart alarm tries to wake you up
           the parameter is NOT USED because time t1 is set with the Heroku scheduler rather than the script
@@ -60,7 +62,7 @@ where the parameters are the following:
 4. second_threshold (1) --> integer signaling how many seconds does your heart rate need to be above the heart_threshold to
                             create the alarm
 
-NOTE: you need to set the parameter t1 and the time of recurrence of the Heroku Scheduler at the same time. 
+NOTE: the parameter t2 needs to be "bigger" than the time of recurrence set on the Heroku Scheduler since the app continues to make api requests until the alarm is not set or the time has not reached t2.
 
 ### 3) Google Drive (OPTIONAL)
 After the alarm has been set, an HR graph is created and saved to your Google Drive.
