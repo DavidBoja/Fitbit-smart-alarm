@@ -1,6 +1,6 @@
 # Fitbit-smart-alarm
 
-This is a "hacky" implementation of a Fitbit smart alarm for older Fitbit devices which do not come with one.
+This is a "hacky" implementation of a smart alarm for older Fitbit devices which do not come with one.
 A smart alarm is an alarm that tries to wake you up in between time t1 and t2, when it deems you are the most awake. 
 
 The overall implementation looks like:
