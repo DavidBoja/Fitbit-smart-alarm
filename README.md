@@ -21,8 +21,14 @@ Go to the "Manage my apps" tab and click on your app. Click on the "OAuth 2.0 tu
 ```
 We will remember the "whatever_your_code_is" variable as FITBIT_AUTHORIZATION in step 2) of this tutorial.
 
+| ![fitbit authorization](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_authorization_hidden.png) | 
+|:--:| 
+| *The process of obtaining the FITBIT_AUTHORIZATION parameter. Confidential info is hidden in red.* |
+
+AAAAA
+
 <figure>
-  <img src="https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_authorization_hidden.png" alt="Fitbit authorization"/>
+  <img align="center" src="https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_authorization_hidden.png" alt="Fitbit authorization"/>
   <figcaption>The process of obtaining the FITBIT_AUTHORIZATION parameter. Confidential info is hidden in red.</figcaption>
 </figure>
 
