@@ -64,6 +64,7 @@ where the parameters are the following:
 
 
 ![heroku_scheduler](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/heroku_scheduler.png)
+
 My smart alarm tries to wake me up from 7am and 8am. It sets an alarm if my HR is above 75 for 1 second. The Heroku Scheduler recurrence is set to 5am since my timezone is UTC+02:00.
 
 NOTE: the parameter t2 needs to be "bigger" than the time of recurrence set on the Heroku Scheduler since the app continues to make api requests until the alarm is not set or the time has not reached t2.
