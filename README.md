@@ -31,8 +31,8 @@ Use the Heroku CLI to create your app by following [these steps](https://devcent
 
 Next, download this repository locally by following [this link](https://help.github.com/en/articles/cloning-a-repository). Instead of cloning it from the terminal, it may be easier to download it as a ZIP and extract it to the Heroku app folder.
 
-Next, we need to setup environment variables and the Heroku scheduler.
-Login with your account to [Heroku.com](https://dashboard.heroku.com/apps) and find the Settings tab in your app.
+Next, we need to setup environment variables and the Heroku scheduler. <br>
+Login with your account to [Heroku.com](https://dashboard.heroku.com/apps) and find the Settings tab in your app just created.
 There, you need to add the following variables (listed as key:value):
 1. CHROMEDRIVER_PATH: /app/.chromedriver/bin/chromedriver
 2. CLIENT_ID: the Fitbit Client ID obtained from step 1)
