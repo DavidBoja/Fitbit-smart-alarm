@@ -1,7 +1,7 @@
 # Fitbit-smart-alarm
 
 This is a "hacky" implementation of a Fitbit smart alarm for older Fitbit devices which do not come with one.
-A smart alarm is an alarm that tries to wake you up in between time t1 and t2, when it deems you are the most awake.
+A smart alarm is an alarm that tries to wake you up in between time t1 and t2, when it deems you are the most awake. 
 
 The overall implementation looks like:
 ![Implementation](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/Fitbit%20drawing.jpg)
@@ -13,12 +13,15 @@ On the mobile side, the Automate app continuously synchronizes your watch with t
 ### 1) Fitbit api
 To obtain Fitbit credentials you need to create a Fitbit app following [this link](https://dev.fitbit.com/apps/new). All the instructions are in the image below.
 ![Create an app for Fitbit](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_api_register_app.png)
-After creating the app, you obtain the client ID and Client Secret, which will be used to make api requests.
+After creating the app, you obtain the Client ID and Client Secret, which will be used to make api requests.
 
 Go to the "Manage my apps" tab and click on your app. Click on the "OAuth 2.0 tutorial page" and follow the instructions till the 1A) step. The output of step 1A) gives you a couple of lines of a curl request. The line we're interested in is
--H 'Authorization: Basic whatever_your_code_is'. We will remember the "whatever_your_code_is" variable as FITBIT_AUTHORIZATION variable, and we'll set it in step 2).
+```
+-H 'Authorization: Basic whatever_your_code_is'
+```
+We will remember the "whatever_your_code_is" variable as FITBIT_AUTHORIZATION in step 2) of this tutorial.
 
-SLIKAAAAAAAAAAA
+![The process of obtaining the FITBIT_AUTHORIZATION parameter. Confidential info is hidden in red](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_authorization_hidden.png)
 
 ### 2) Heroku
 The python script "smart_alarm.py" does all the work on a Heroku server.
@@ -26,9 +29,9 @@ The python script "smart_alarm.py" does all the work on a Heroku server.
 To setup your Heroku app, you firstly need to create a [Heroku](https://heroku.com) account. 
 Use the Heroku CLI to create your app by following [these steps](https://devcenter.heroku.com/articles/heroku-cli).
 
-Next, download this repository by following [this link](https://help.github.com/en/articles/cloning-a-repository). Instead of cloning it from the terminal, it may be easier to download it as a ZIP and extract it to the Heroku app folder.
+Next, download this repository locally by following [this link](https://help.github.com/en/articles/cloning-a-repository). Instead of cloning it from the terminal, it may be easier to download it as a ZIP and extract it to the Heroku app folder.
 
-Next, we need to setup a environment variables and the Heroku scheduler.
+Next, we need to setup a environment variables and the Heroku scheduler on the Heroku page.
 Login with your account to [Heroku.com](https://dashboard.heroku.com/apps) and find the Settings tab in your app.
 There, you need to add the following variables (listed as key:value):
 1. CHROMEDRIVER_PATH: /app/.chromedriver/bin/chromedriver
@@ -40,7 +43,7 @@ There, you need to add the following variables (listed as key:value):
 7. PASSW_FIT: your Fitbit account password
 8. TZ: your timezone (you can find the complete list [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones))
 
-SLIKAAAAAAAA ENV VARS
+![config variables](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/config_vars_hidden.png)
 
 Scrolling down, you need to add 2 buildpacks in the Buildpacks section by oressing Add buildpack and pasting the following two repos one at a time:
 1. https://github.com/heroku/heroku-buildpack-chromedriver.git
@@ -48,14 +51,16 @@ Scrolling down, you need to add 2 buildpacks in the Buildpacks section by oressi
 
 The next step is to set the Heroku scheduler.
 Go to the Resources tab of your app on the Heroku page. In the text box "Quickly add add-ons from Elements" type in "Heroku Scheduler" and insatall it. Now, on the overveiw page, there's an installed app Heroku scheduler; click on it and add a new job every hour at whatever time you want. Be careful of the timezones. In the "Run Command" you'll put the smart alarm script like so:
-SLIKA
+![My smart alarm tries to wake me up from 7am and 8am. It sets an alarm if my HR is above 75 for 1 second.](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/heroku_scheduler.png)
 where the parameters are the following:
-1. t1 --> integer signaling the hour from which the smart alarm tries to wake you up
+1. t1 (7) --> integer signaling the hour from which the smart alarm tries to wake you up
           the parameter is NOT USED because time t1 is set with the Heroku scheduler rather than the script
-2. t2 --> integer signaling the hour untill the smart alarm tries to wake you up
-3. heart_threshold --> integer signaling the HR above which you deem yourself to be awake (or awakeining)
-4. second_threshold --> integer signaling how many seconds does your heart rate need to be above the heart_threshold to
-                        create the alarm
+2. t2 (8) --> integer signaling the hour untill the smart alarm tries to wake you up
+3. heart_threshold (75) --> integer signaling the HR above which you deem yourself to be awake (or awakeining)
+4. second_threshold (1) --> integer signaling how many seconds does your heart rate need to be above the heart_threshold to
+                            create the alarm
+
+NOTE: you need to set the parameter t1 and the time of recurrence of the Heroku Scheduler at the same time. 
 
 ### 3) Google Drive (OPTIONAL)
 After the alarm has been set, an HR graph is created and saved to your Google Drive.
