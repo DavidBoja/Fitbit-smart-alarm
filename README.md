@@ -21,7 +21,8 @@ Go to the "Manage my apps" tab and click on your app. Click on the "OAuth 2.0 tu
 ```
 We will remember the "whatever_your_code_is" variable as FITBIT_AUTHORIZATION in step 2) of this tutorial.
 
-![Fitbit authorization](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_authorization_hidden.png)*Confidential info is hidden in red.*
+![Fitbit authorization](https://github.com/DavidBoja/Fitbit-smart-alarm/blob/master/images/fitbit_authorization_hidden.png)
+*Confidential info is hidden in red.*
 
 ### 2) Heroku
 The python script "smart_alarm.py" does all the work on a Heroku server.
