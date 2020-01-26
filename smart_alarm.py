@@ -134,36 +134,14 @@ def set_alarm(alarm_time, profile, tracker_id, ACCESS_TOKEN):
         return False
 
 
-def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
+def auth_fitbit(CLIENT_ID,CHROME_EXEC_SHIM,CHROMEDRIVER_PATH,EMAIL,PASSW_FIT,FITBIT_AUTHORIZATION):
     '''
-    Set a smart alarm from t1 hours till t2 hours.
-    The alarm checks if heart rate crosses heart_threshold for a 
-    duration of second_threshold seconds.
-    If the threshold is crossed, the alarm is set.
-    If the threshold is not crossed, and the clock reaches t2 hours,
-    the alarm is set at t2 hours.
-    DISCLAIMER : t1 is not actually used. It is set on heroku as 
-    a daily scheduled task.
+    Authorize access for fitbit api.
     '''
-    ##############################################################
-    #                   PERSONAL DATA
-    ##############################################################
-
-    CLIENT_ID = os.environ['CLIENT_ID']
-    CLIENT_SECRET = os.environ['CLIENT_SECRET']
-
-    alarm_set = False
-
-    ##############################################################
-    #                FITBIT AUTHORIZATION
-    ##############################################################
-
 
     # create instance of google chrome browser to control with selenium
-    chrome_exec_shim = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
-    CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH')
     opts = webdriver.ChromeOptions()
-    opts.binary_location = chrome_exec_shim
+    opts.binary_location = CHROME_EXEC_SHIM
     opts.add_argument('--headless')
     opts.add_argument('--no-sandbox')
     opts.add_argument('--disable-dev-shm-usage')
@@ -177,20 +155,6 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
 
     time.sleep(5)
 
-
-    # Login to your fitbit account
-    EMAIL = os.environ.get('EMAIL')
-    PASSW_FIT = os.environ.get('PASSW_FIT')
-
-    email = browser.find_element_by_xpath('//input[@placeholder="Your email address"]')
-    email.send_keys(EMAIL)
-    passw = browser.find_element_by_xpath('//input[@placeholder="Enter your password"]')
-    passw.send_keys(PASSW_FIT)
-
-    passw.send_keys(Keys.ENTER)
-
-    time.sleep(10)
-
     print('selenium done')
 
     # Get a code from the url with which you can get the ACCESS_TOKEN
@@ -203,7 +167,6 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
         print(e)
         sys.exit()
 
-    FITBIT_AUTHORIZATION = os.environ.get('FITBIT_AUTHORIZATION')
 
     r = requests.post('https://api.fitbit.com/oauth2/token',
                       data = {'clientId':CLIENT_ID,
@@ -226,9 +189,13 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
 
     browser.close()
 
-    ##############################################################
-    #                   GET YOUR PROFILE ID
-    ##############################################################
+    return ACCESS_TOKEN, REFRESH_TOKEN
+
+
+def get_fitbit_profile_id(ACCESS_TOKEN):
+    '''
+    Find your fitbit profile id.
+    '''
     r = requests.get('https://api.fitbit.com/1/user/-/profile.json',
                      headers={'Authorization': 'Bearer {}'.format(ACCESS_TOKEN)})
 
@@ -238,20 +205,27 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
     else:
         print('Error while getting profile, check again')
 
+    return profile
 
-    ##############################################################
-    #             GET TRACKER ID FOR MANAGING ALARMS
-    ##############################################################
-    r = requests.get('https://api.fitbit.com/1/user/-/devices.json'
-                 .format(profile['encodedId']),
+
+def get_fitbit_tracker_id(ACCESS_TOKEN):
+    '''
+    Find your fitbit tracker id.
+    '''
+    
+    r = requests.get('https://api.fitbit.com/1/user/-/devices.json',
             headers={'Authorization': 'Bearer {}'.format(ACCESS_TOKEN)})
 
     tracker_id = json.loads(r.content)[0]['id']
     print('Tracker id: {}'.format(tracker_id))
 
-    ##############################################################
-    #                DELETE PREVIOUS ALARMS
-    ##############################################################
+    return tracker_id
+
+
+def fitbit_delete_previous_alarms(ACCESS_TOKEN, profile, tracker_id):
+    '''
+    Delete all currently set fitbit alarms.
+    '''
     r = requests.get('https://api.fitbit.com/1/user/{}/devices/tracker/{}/alarms.json'
                  .format(profile['encodedId'],tracker_id),
             headers={'Authorization': 'Bearer {}'.format(ACCESS_TOKEN)})
@@ -264,11 +238,12 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
                             headers={'Authorization': 'Bearer {}'.format(ACCESS_TOKEN)})
 
     print('Deleted all previous alarms. The tracker needs to sync for the effects to take change')
+    
+def fitbit_syncing_check(ACCESS_TOKEN, profile):
+    '''
+    Test syncing of fitbit api by making a request.
+    '''
 
-    ##############################################################
-    #           FIRST API REQUEST TO GET CHECK IF
-    #               FITBIT IS SYNCING AT ALL
-    ##############################################################
     print('Making first api request for heart rates')
     r = requests.get('https://api.fitbit.com/1/user/{}/activities/heart/date/today/1d/1sec.json'
                      .format(profile['encodedId']),
@@ -284,8 +259,118 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
         last_ten_heart_rates = my_heart.loc[(my_heart.shape[0]-10):,:]
     except:
         print('FITBIT IS NOT SYNCING DUDE')
-        return
+        sys.exit()
 
+    return my_heart, last_ten_heart_rates
+
+
+def recurrent_fitbit_api_calls(ACCESS_TOKEN, profile, alarm_set, t2, last_checked_index, heart_threshold, second_threshold, tracker_id):
+    '''
+    Make api requests for your heart rate while the alarm is not set
+    or the time is below t2 threshold
+    '''
+
+    print('Entering api call loop')
+    while((not alarm_set) and (datetime.now().hour < t2)):
+        r = requests.get('https://api.fitbit.com/1/user/{}/activities/heart/date/today/1d/1sec.json'
+                         .format(profile['encodedId']),
+                    headers={'Authorization': 'Bearer {}'.format(ACCESS_TOKEN)})
+
+        my_heart = json.loads(r.content)['activities-heart-intraday']['dataset']
+        my_heart = pd.DataFrame(my_heart)
+        my_heart['time'] = pd.to_datetime(my_heart['time'])
+
+        # Check only from the last time we made a check
+        my_heart2 = my_heart.loc[last_checked_index:,:].copy()
+        print('New heart rates:')
+        print(my_heart2)
+
+        # if my heart rate went above the heart_threshold in the last number of sec,
+        # (from the last time we made a check if I was waking up)
+        # and was above that level for at least second_threshold,
+        # sound the alarm because i seem to be waking up
+
+        if sum(my_heart2.value > heart_threshold) > second_threshold:
+            # set alarm
+            alarm_time = my_heart2.loc[my_heart2[my_heart2.value > heart_threshold].index[-1],:].time + timedelta(minutes=5)
+            alarm_set = set_alarm(alarm_time, profile, tracker_id, ACCESS_TOKEN)
+
+            # Save sleep graph
+            save_heart_plot(my_heart, heart_threshold)
+
+            print('Alarm set for {}:{}'.format(alarm_time.hour,alarm_time.minute))
+
+        else:
+            print('Seems you havent been trying to wake up you lazy bastard')
+            last_checked_index = my_heart.shape[0]
+            time.sleep(120)
+
+    return alarm_set
+
+
+def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
+    '''
+    Set a smart alarm from t1 hours till t2 hours.
+    The alarm checks if heart rate crosses heart_threshold for a 
+    duration of second_threshold seconds.
+    If the threshold is crossed, the alarm is set.
+    If the threshold is not crossed, and the clock reaches t2 hours,
+    the alarm is set at t2 hours.
+    DISCLAIMER : t1 is not actually used. It is set on heroku as 
+    a daily scheduled task.
+    '''
+    ##############################################################
+    #              PERSONAL DATA AND VARIABLES
+    ##############################################################
+
+    CLIENT_ID = os.environ['CLIENT_ID']
+    CLIENT_SECRET = os.environ['CLIENT_SECRET']
+
+    CHROME_EXEC_SHIM = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
+    CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH')
+
+    EMAIL = os.environ.get('EMAIL')
+    PASSW_FIT = os.environ.get('PASSW_FIT')
+    FITBIT_AUTHORIZATION = os.environ.get('FITBIT_AUTHORIZATION')
+
+
+    alarm_set = False
+
+    ##############################################################
+    #                FITBIT AUTHORIZATION
+    ##############################################################
+
+    ACCESS_TOKEN, REFRESH_TOKEN = auth_fitbit(CLIENT_ID, CHROME_EXEC_SHIM, CHROMEDRIVER_PATH, 
+                                               EMAIL, PASSW_FIT, FITBIT_AUTHORIZATION)
+
+    ##############################################################
+    #                   GET YOUR PROFILE ID
+    ##############################################################
+
+    profile = get_fitbit_profile_id(ACCESS_TOKEN)
+
+    ##############################################################
+    #             GET TRACKER ID FOR MANAGING ALARMS
+    ##############################################################
+
+    tracker_id = get_fitbit_tracker_id(ACCESS_TOKEN)
+
+    ##############################################################
+    #                DELETE PREVIOUS ALARMS
+    ##############################################################
+
+    fitbit_delete_previous_alarms(ACCESS_TOKEN, profile, tracker_id)
+
+    ##############################################################
+    #           FIRST API REQUEST TO GET CHECK IF
+    #               FITBIT IS SYNCING AT ALL
+    ##############################################################
+    my_heart, last_ten_heart_rates = fitbit_syncing_check(ACCESS_TOKEN, profile)
+
+
+    ##############################################################
+    #           TRY AUTHORIZING GOOGLE DRIVE 
+    ##############################################################
     try:
         auth_google_drive()
     except Exception as e:
@@ -293,8 +378,9 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
         print('THE ERROR IS: ')
         print(e)
 
-    print('Last ten heart rates:')
-    print(last_ten_heart_rates)
+    ##############################################################
+    #           FIRST HEART RATE CHECK 
+    ##############################################################
 
     # if my heart rate went above the heart_threshold in the last 10 sec,
     # and was above that level for at least second_threshold,
@@ -322,43 +408,14 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
     #       MAKE API REQUESTS FOR YOUR HEART RATE WHILE THE
     #           ALARM IS NOT SET AND THE TIME IS BELOW t2
     ##############################################################
-    print('Entering while statement')
-    while((not alarm_set) and (datetime.now().hour < t2)):
-        r = requests.get('https://api.fitbit.com/1/user/{}/activities/heart/date/today/1d/1sec.json'
-                         .format(profile['encodedId']),
-                    headers={'Authorization': 'Bearer {}'.format(ACCESS_TOKEN)})
 
-        my_heart = json.loads(r.content)['activities-heart-intraday']['dataset']
-        my_heart = pd.DataFrame(my_heart)
-        my_heart['time'] = pd.to_datetime(my_heart['time'])
-
-        # Check only from the last time we made a check
-        my_heart2 = my_heart.loc[last_checked_index:,:].copy()
-        print('my_heart2:')
-        print(my_heart2)
-
-        # if my heart rate went above the heart_threshold in the last number of sec,
-        # (from the last time we made a check if I was waking up)
-        # and was above that level for at least second_threshold,
-        # sound the alarm because i seem to be waking up
-
-        if sum(my_heart2.value > heart_threshold) > second_threshold:
-            # set alarm
-            alarm_time = my_heart2.loc[my_heart2[my_heart2.value > heart_threshold].index[-1],:].time + timedelta(minutes=5)
-            alarm_set = set_alarm(alarm_time, profile, tracker_id, ACCESS_TOKEN)
-
-            # Save sleep graph
-            save_heart_plot(my_heart, heart_threshold)
-
-            print('Alarm set for {}:{}'.format(alarm_time.hour,alarm_time.minute))
-
-        else:
-            print('Seems you havent been trying to wake up you lazy bastard')
-            last_checked_index = my_heart.shape[0]
-            time.sleep(120)
+    alarm_set = recurrent_fitbit_api_calls(ACCESS_TOKEN, profile, alarm_set, t2, last_checked_index, 
+                                            heart_threshold, second_threshold, tracker_id)
 
 
-    # If I wasn't trying to wake up before t2 hours, set alarm for t2 hours + 5 min
+    ##############################################################
+    #       IF ALL FAILS, CREATE ALARM AT t2 + 5 min TIME
+    ##############################################################
     if not alarm_set:
         alarm_time = datetime.now() + timedelta(minutes=5)
         set_alarm(alarm_time, profile, tracker_id, ACCESS_TOKEN)
@@ -367,6 +424,7 @@ def set_smart_alarm(t1,t2,heart_threshold,second_threshold):
         save_heart_plot(my_heart, heart_threshold)
 
         print('Supriiiiiiiiiiiise!! STOP SLEEPING')
+
 
 if __name__ == "__main__":
     import argparse
